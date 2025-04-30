@@ -14,49 +14,27 @@ namespace MiniWordPad
     public partial class Form1: Form
     {
         private string currentFilePath = null;
-        private int savedSelectionStart = 0;
-        private int savedSelectionLength = 0;
-
 
         public Form1()
         {
             InitializeComponent();
-            Text = "Amiri WordPad";
+            Text = "Minimal WordPad";
             UpdateStatus("Готов");
 
-
-            foreach (var size in new float[] { 8, 9, 10, 11, 12, 14, 16, 18, 20, 22, 24, 26, 28, 36, 48, 72 })
-            {
-                fontSizeComboBox.Items.Add(size);
-            }
-
-
-            foreach (FontFamily font in FontFamily.Families)
-            {
-                fontComboBox.Items.Add(font.Name);
-            }
-
-            fontComboBox.SelectedItem = "Times New Roman";
-            fontSizeComboBox.SelectedItem = 12f;
-
+            // Повторное выделение найденного текста при возвращении фокуса окну
             this.Activated += (s, e) =>
             {
                 if (foundPositions.Count > 0)
-                    HighlightFoundText(); 
+                    HighlightFoundText();
             };
 
-            boldToolStripButton.CheckOnClick = true;
-            italicToolStripButton.CheckOnClick = true;
-            underlineToolStripButton.CheckOnClick = true;
-            alignCenterToolStripButton.CheckOnClick = true;
-            alignLeftToolStripButton.CheckOnClick = true;
-            alignRightToolStripButton.CheckOnClick = true;
 
-            mainToolStrip.Visible = false;
+            // Скрытие панелей инструментов по умолчанию
             panelSearch.Width = 0;
             panelReplace.Width = 0;
-
         }
+
+        // Диалог выбора шрифта и цвета текста
         private void fontDefaultToolStripButton_Click(object sender, EventArgs e)
         {
             FontDialog fontDialog = new FontDialog();
@@ -74,6 +52,7 @@ namespace MiniWordPad
                 contentRichTextBox.SelectionColor = fontDialog.Color;
             }
         }
+
         private void contentRichTextBox_TextChanged(object sender, EventArgs e)
         {
             searchText = "";
@@ -85,6 +64,8 @@ namespace MiniWordPad
         {
             UpdateStatus();
         }
+
+        // Обновление строки состояния: сообщение, позиция курсора и число символов
         private void UpdateStatus(string message = "")
         {
             if (!string.IsNullOrEmpty(message))
@@ -98,18 +79,6 @@ namespace MiniWordPad
             cursorPoisitionLabel.Text = $"Строка: {line + 1}, Столбец: {column + 1}";
             charCountLabel.Text = $"Символов: {charCount}";
         }
-        private void SaveCursorPosition()
-        {
-            savedSelectionStart = contentRichTextBox.SelectionStart;
-            savedSelectionLength = contentRichTextBox.SelectionLength;
-        }
-        private void RestoreCursorPosition()
-        {
-            contentRichTextBox.SelectionStart = savedSelectionStart;
-            contentRichTextBox.SelectionLength = savedSelectionLength;
-            contentRichTextBox.ScrollToCaret();
-        }
-
         // ===== Функции ФАЙЛ =====
         private void ResetFormatting()
         {
@@ -118,18 +87,18 @@ namespace MiniWordPad
 
             contentRichTextBox.SelectionAlignment = HorizontalAlignment.Left;
 
-            fontComboBox.SelectedItem = "Times New Roman";
-            fontSizeComboBox.SelectedItem = 12f;
             searchBox.Text = "";
             textBoxOn.Text = "";
             textBoxWhat.Text = "";
         }
+   
+        // Создание нового документа с проверкой на несохранённые изменения
         private void NewFile()
         {
             if (contentRichTextBox.TextLength > 0)
             {
-                var result = MessageBox.Show("Сохранить изменения?", "Amiri WordPad",
-                                          MessageBoxButtons.YesNoCancel);
+                var result = MessageBox.Show("Сохранить изменения?", "Minimal WordPad",
+                                              MessageBoxButtons.YesNoCancel);
                 if (result == DialogResult.Yes)
                     SaveFile();
                 else if (result == DialogResult.Cancel)
@@ -137,15 +106,16 @@ namespace MiniWordPad
             }
             contentRichTextBox.Clear();
             currentFilePath = null;
-            Text = "Amiri WordPad - Новый документ";
+            Text = "Minimal WordPad - Новый документ";
             ResetFormatting();
         }
+        // Открытие файла .txt или .rtf
         private void OpenFile()
         {
             if (contentRichTextBox.TextLength > 0 && contentRichTextBox.Modified)
             {
-                var result = MessageBox.Show("Сохранить изменения в текущем документе?", "Amiri WordPad",
-                                          MessageBoxButtons.YesNoCancel);
+                var result = MessageBox.Show("Сохранить изменения в текущем документе?", "Minimal WordPad",
+                                              MessageBoxButtons.YesNoCancel);
                 if (result == DialogResult.Yes)
                     SaveFile();
                 else if (result == DialogResult.Cancel)
@@ -159,17 +129,17 @@ namespace MiniWordPad
                 {
                     try
                     {
-                        ResetFormatting();
-                     
+                        ResetFormatting(); // сброс форматирования перед загрузкой
+
                         if (openDialog.FileName.EndsWith(".rtf"))
                             contentRichTextBox.LoadFile(openDialog.FileName);
                         else
                             contentRichTextBox.LoadFile(openDialog.FileName, RichTextBoxStreamType.PlainText);
 
                         currentFilePath = openDialog.FileName;
-                        Text = $"Amiri WordPad - {Path.GetFileName(currentFilePath)}";
+                        Text = $"Minimal WordPad - {Path.GetFileName(currentFilePath)}";
                         UpdateStatus("Файл открыт");
-                        contentRichTextBox.Modified = false; // cбрасываем флаг изменений
+                        contentRichTextBox.Modified = false; // сброс флага изменений
                     }
                     catch (Exception ex)
                     {
@@ -178,11 +148,11 @@ namespace MiniWordPad
                 }
             }
         }
-
+        // Сохранение текущего файла
         private void SaveFile()
         {
             if (string.IsNullOrEmpty(currentFilePath))
-                SaveFileAs();
+                SaveFileAs(); // если нет пути — вызов "Сохранить как"
             else
             {
                 try
@@ -200,7 +170,6 @@ namespace MiniWordPad
                 }
             }
         }
-
         private void SaveFileAs()
         {
             using (var saveDialog = new SaveFileDialog())
@@ -210,7 +179,7 @@ namespace MiniWordPad
                 {
                     currentFilePath = saveDialog.FileName;
                     SaveFile();
-                    Text = $"Amiri WordPad - {Path.GetFileName(currentFilePath)}";
+                    Text = $"Minimal WordPad - {Path.GetFileName(currentFilePath)}";
                 }
             }
         }
@@ -243,7 +212,7 @@ namespace MiniWordPad
         {
             if (contentRichTextBox.TextLength > 0)
             {
-                var result = MessageBox.Show("Сохранить изменения перед выходом?", "Simple WordPad",
+                var result = MessageBox.Show("Сохранить изменения перед выходом?", "Minimal WordPad",
                                             MessageBoxButtons.YesNoCancel);
                 if (result == DialogResult.Yes)
                     SaveFile();
@@ -274,10 +243,7 @@ namespace MiniWordPad
             UpdateStatus("Выравнивание по правому краю");
         }
 
-        private string currentSearchText = "";
-        private int currentSearchIndex = 0;
-        private List<int> searchOccurrences = new List<int>();
-
+        // Копирование текста (с RTF и PlainText)
         private void copyToolStripButton_Click(object sender, EventArgs e)
         {
             if (contentRichTextBox.SelectionLength > 0)
@@ -285,30 +251,27 @@ namespace MiniWordPad
                 try
                 {
                     DataObject data = new DataObject();
-
-                    data.SetText(contentRichTextBox.SelectedText); // простой текст
+                    data.SetText(contentRichTextBox.SelectedText);
                     if (contentRichTextBox.SelectedRtf != null)
-                    {
-                        data.SetData(DataFormats.Rtf, contentRichTextBox.SelectedRtf); // форматирование с РТФ копирования
-                    }
+                        data.SetData(DataFormats.Rtf, contentRichTextBox.SelectedRtf);
 
                     Clipboard.Clear();
-                    Clipboard.SetDataObject(data, true); //access
+                    Clipboard.SetDataObject(data, true);
                     UpdateStatus("Текст скопирован");
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Ошибка копирования: {ex.Message}", "Ошибка",
-                                  MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show($"Ошибка копирования: {ex.Message}", "Ошибка");
                 }
             }
             else
             {
-                MessageBox.Show("Выделите текст для копирования", "Уведомление",
-                              MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("Выделите текст для копирования", "Уведомление");
             }
         }
 
+
+        // Вставка текста с проверкой формата
         private void pasteToolStripButton_Click(object sender, EventArgs e)
         {
             try
@@ -316,27 +279,23 @@ namespace MiniWordPad
                 if (Clipboard.ContainsText() || Clipboard.ContainsText(TextDataFormat.Rtf))
                 {
                     if (Clipboard.ContainsText(TextDataFormat.Rtf))
-                    {
                         contentRichTextBox.Paste(DataFormats.GetFormat(DataFormats.Rtf));
-                    }
                     else
-                    {
                         contentRichTextBox.Paste(DataFormats.GetFormat(DataFormats.Text));
-                    }
+
                     UpdateStatus("Текст вставлен");
                 }
                 else
                 {
-                    MessageBox.Show("Буфер обмена не содержит текста", "Уведомление",
-                                  MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show("Буфер обмена не содержит текста", "Уведомление");
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ошибка вставки: {ex.Message}", "Ошибка",
-                              MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Ошибка вставки: {ex.Message}", "Ошибка");
             }
         }
+
         private void cutToolStripButton_Click(object sender, EventArgs e)
         {
             if (contentRichTextBox.SelectionLength > 0)
@@ -418,32 +377,54 @@ namespace MiniWordPad
         {
             FindPrevious(textBoxWhat.Text);
         }
-
-        private void FindNext(string text)
+        private void btnNext_Click(object sender, EventArgs e)
         {
-            if (text != searchText)
-            {
-                searchText = text;
-                currentPosition = 0;
-                FindAllOccurrences();
-            }
-
-            if (foundPositions.Count == 0)
-            {
-                MessageBox.Show("Текст не найден!");
-                return;
-            }
-
-            currentPosition++;
-            if (currentPosition >= foundPositions.Count)
-            {
-                currentPosition = 0;
-            }
-
-            HighlightFoundText();
-            contentRichTextBox.Focus();
+            contentRichTextBox.Redo();
+            UpdateStatus("Действие вперёд");
+        }
+        private void btnPrev_Click(object sender, EventArgs e)
+        {
+            contentRichTextBox.Undo();
+            UpdateStatus("Вернуть действие");
         }
 
+        private void buttonReplace_Click(object sender, EventArgs e)
+        {
+            ReplaceCurrent();
+        }
+        private void buttonReplaceAll_Click(object sender, EventArgs e)
+        {
+            ReplaceAll();
+        }
+
+
+        /*
+        Метод FindNext ищет следующее вхождение строки `searchText` в RichTextBox.
+        Поиск начинается с текущей позиции курсора и идёт вперёд до конца текста.
+        Если ничего не найдено — отображается сообщение.
+        */
+        private void FindNext(string searchText)
+        {
+            if (string.IsNullOrEmpty(searchText)) return;
+
+            int start = contentRichTextBox.SelectionStart + contentRichTextBox.SelectionLength;
+            int index = contentRichTextBox.Find(searchText, start, RichTextBoxFinds.None);
+
+            if (index != -1)
+            {
+                contentRichTextBox.SelectionStart = index;
+                contentRichTextBox.SelectionLength = searchText.Length;
+                contentRichTextBox.ScrollToCaret(); // прокрутка к найденному
+                UpdateStatus($"Найдено на позиции {index}");
+            }
+            else
+            {
+                UpdateStatus("Текст не найден");
+            }
+        }
+        /*
+        Поиск уже предыдущего вхождения текста, аналогично методу FindNext
+        */
         private void FindPrevious(string text)
         {
             if (text != searchText)
@@ -469,60 +450,48 @@ namespace MiniWordPad
             contentRichTextBox.Focus();
 
         }
-
+        /*
+        Поиск всех вхождений
+        */
         private void FindAllOccurrences()
         {
-            foundPositions.Clear();
+            foundPositions.Clear(); // Очищаем список ранее найденных позиций (чтобы не мешали новые результаты)
             int index = 0;
 
+            // Пока не достигнут конец текста
             while (index < contentRichTextBox.Text.Length)
             {
                 index = contentRichTextBox.Find(
-                    searchText,
-                    index,
-                    RichTextBoxFinds.None
+                    searchText,                  // Ищем строку поиска
+                    index,                       // начиная с текущего индекса
+                    RichTextBoxFinds.None        // без специальных параметров (например, регистрозависимость и пр.)
                 );
 
-                if (index == -1) break;
+                if (index == -1) break; // Если ничего не найдено — выходим из цикла
 
-                foundPositions.Add(index);
-                index += searchText.Length;
+                foundPositions.Add(index); // Сохраняем позицию найденного вхождения
+                index += searchText.Length; // Продвигаем указатель дальше, чтобы не зациклиться
             }
         }
-
+        /*
+        Выделение найденного текста
+        */
         private void HighlightFoundText()
         {
-            contentRichTextBox.SelectionLength = 0; // Restart SELECTION
+            contentRichTextBox.SelectionLength = 0; // Убираем любое текущее выделение
 
+            // Если есть найденные позиции и текущая позиция в допустимых пределах
             if (foundPositions.Count > 0 && currentPosition < foundPositions.Count)
             {
-                contentRichTextBox.SelectionStart = foundPositions[currentPosition]; // [ XX : XX] .. дефолт выделение
-                contentRichTextBox.SelectionLength = searchText.Length;
+                contentRichTextBox.SelectionStart = foundPositions[currentPosition]; // Устанавливаем курсор на нужную позицию
+                contentRichTextBox.SelectionLength = searchText.Length;              // Выделяем текст той же длины, что и запрос
 
-
-                contentRichTextBox.ScrollToCaret();
-                contentRichTextBox.Refresh();
+                contentRichTextBox.ScrollToCaret(); // Прокручиваем к выделенному тексту
+                contentRichTextBox.Refresh();       // Обновляем отображение (иногда требуется для применения визуальных изменений)
             }
         }
-        private void btnNext_Click(object sender, EventArgs e)
-        {
-            contentRichTextBox.Redo();
-            UpdateStatus("Действие вперёд");
-        }
-        private void btnPrev_Click(object sender, EventArgs e)
-        {
-            contentRichTextBox.Undo();
-            UpdateStatus("Вернуть действие");
-        }
 
-        private void buttonReplace_Click(object sender, EventArgs e)
-        {
-            ReplaceCurrent();
-        }
-        private void buttonReplaceAll_Click(object sender, EventArgs e)
-        {
-            ReplaceAll();
-        }
+        // Замена текущего найденного текста
         private void ReplaceCurrent()
         {
             string search = textBoxWhat.Text;
@@ -530,18 +499,16 @@ namespace MiniWordPad
 
             if (string.IsNullOrEmpty(search)) return;
 
-            // первое вхождение или текст изменился--- пересчитываем все вхождения
             if (search != searchText || foundPositions.Count == 0)
             {
-                searchText = search; 
-                currentPosition = 0; 
-                foundPositions.Clear(); 
-                FindAllOccurrences(); 
+                searchText = search;
+                currentPosition = 0;
+                foundPositions.Clear();
+                FindAllOccurrences();
             }
 
-            if (foundPositions.Count == 0) return; 
+            if (foundPositions.Count == 0) return;
 
-            // get current позицию для замены
             int position = foundPositions[currentPosition];
 
             contentRichTextBox.SelectionStart = position;
@@ -550,16 +517,14 @@ namespace MiniWordPad
 
             UpdateStatus($"Заменено {search} - {replace}");
 
-
             foundPositions.Clear();
-            FindAllOccurrences(); // peres4et
+            FindAllOccurrences();
 
             currentPosition++;
             if (currentPosition >= foundPositions.Count) currentPosition = 0;
 
             HighlightFoundText();
         }
-
         private void ReplaceAll()
         {
             if (!string.IsNullOrEmpty(textBoxWhat.Text))
@@ -567,42 +532,64 @@ namespace MiniWordPad
                 ReplaceAllOccurrences(textBoxWhat.Text, textBoxOn.Text);
             }
         }
-
+        
+        /*
+        Метод ReplaceAllOccurrences выполняет замену всех вхождений строки `searchText` на строку `replaceText`
+        в документе, представленном в RichTextBox (contentRichTextBox).
+        */
         private void ReplaceAllOccurrences(string searchText, string replaceText)
         {
+            // Проверяем, что строка для поиска не пуста
             if (string.IsNullOrEmpty(searchText)) return;
 
-            contentRichTextBox.SuspendLayout(); // pause
-            int replaceCount = 0;
-            int index = 0;
+            // Временно приостанавливаем обновление визуального интерфейса,
+            // чтобы избежать мигания и повысить производительность
+            contentRichTextBox.SuspendLayout();
 
+            int replaceCount = 0; // Счётчик замен
+            int index = 0;        // Текущий индекс поиска
+
+            // Пока не дошли до конца текста
             while (index < contentRichTextBox.TextLength)
             {
+                // Ищем вхождение текста с текущей позиции
                 index = contentRichTextBox.Find(
                     searchText,
                     index,
                     RichTextBoxFinds.None
                 );
 
+                // Если больше вхождений нет — выходим
                 if (index == -1) break;
 
+                // Выделяем найденный текст
                 contentRichTextBox.SelectionStart = index;
                 contentRichTextBox.SelectionLength = searchText.Length;
+
+                // Заменяем выделенный текст на новый
                 contentRichTextBox.SelectedText = replaceText;
 
-                replaceCount++;
+                replaceCount++; // Увеличиваем счётчик замен
+
+                // Переходим на следующую позицию после вставленного текста
                 index += replaceText.Length;
             }
 
+            // Возобновляем обновление визуального интерфейса
             contentRichTextBox.ResumeLayout();
+
+            // Обновляем статусную строку с информацией о количестве замен
             UpdateStatus($"Заменено {replaceCount} вхождений");
         }
 
+        /*
+        Обработка закрытия окна 
+        */
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
             if (contentRichTextBox.TextLength > 0)
             {
-                var result = MessageBox.Show("Сохранить изменения перед выходом?", "Amiri WordPad",
+                var result = MessageBox.Show("Сохранить изменения перед выходом?", "Minimal WordPad",
                                             MessageBoxButtons.YesNoCancel);
                 if (result == DialogResult.Yes)
                     SaveFile();
