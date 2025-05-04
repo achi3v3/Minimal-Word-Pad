@@ -403,25 +403,31 @@ namespace MiniWordPad
         Поиск начинается с текущей позиции курсора и идёт вперёд до конца текста.
         Если ничего не найдено — отображается сообщение.
         */
-        private void FindNext(string searchText)
+        private void FindNext(string text)
         {
-            if (string.IsNullOrEmpty(searchText)) return;
-
-            int start = contentRichTextBox.SelectionStart + contentRichTextBox.SelectionLength;
-            int index = contentRichTextBox.Find(searchText, start, RichTextBoxFinds.None);
-
-            if (index != -1)
+            if (text != searchText)
             {
-                contentRichTextBox.SelectionStart = index;
-                contentRichTextBox.SelectionLength = searchText.Length;
-                contentRichTextBox.ScrollToCaret(); // прокрутка к найденному
-                UpdateStatus($"Найдено на позиции {index}");
+                // Если текст поиска изменился, ищем заново
+                searchText = text;
+                currentPosition = 0;
+                FindAllOccurrences();
             }
-            else
+            if (foundPositions.Count == 0)
             {
-                UpdateStatus("Текст не найден");
+                MessageBox.Show("Текст не найден!");
+                return;
             }
-        }
+
+             currentPosition += 1;
+            if (currentPosition >= foundPositions.Count)
+            {
+                currentPosition = 0;
+            }
+
+            HighlightFoundText();
+            contentRichTextBox.Focus();
+
+            }
         /*
         Поиск уже предыдущего вхождения текста, аналогично методу FindNext
         */
